@@ -42,7 +42,7 @@ def getFahrenheit(city, API):
         "temperature": data["current"]["temperature"],
         "condition": data["current"]["weather_descriptions"][0]
     }
-    print(weatherInfo)
+    printInfo(weatherInfo, "F")
 
 
 def getCelcius(city, API):
@@ -54,12 +54,16 @@ def getCelcius(city, API):
         "name": data["location"]["name"],
         "country": data["location"]["country"],
         "region": data["location"]["region"],
-        "time": data["current"]["observation_time"],
         "temperature": data["current"]["temperature"],
         "condition": data["current"]["weather_descriptions"][0]
     }
-    print(weatherInfo)
+    printInfo(weatherInfo, "C")
 
 
-def printValue(info):
-    pass
+def printInfo(info, units):
+    text = f"""
+        {info["name"]} - {info["region"]} - {info["country"]}
+        Temperature: {info["temperature"]} {units}°
+        Condition: {info["condition"]}
+    """
+    print(text)

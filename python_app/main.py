@@ -32,6 +32,7 @@ while open:
             print(f"Units: {units}")
             choice = input("Are you sure? (y/n): ")
         if choice.lower() == "y":
+            clear()
             if data["units"].lower() == "f":
                 getFahrenheit(city, API)
             else:
