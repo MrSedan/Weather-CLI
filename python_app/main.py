@@ -1,16 +1,19 @@
 # Импортирование используемых библиотек
-import os
+import os, sys
 from os.path import join, dirname
 from dotenv import load_dotenv
 
 # Имортирование функций из другого файла
-from functions import menu, clear, weatherMenu, getFahrenheit, getCelcius
+from functions import menu, clear, weatherMenu, getWeather
 open = True
 
 # Загрузка API-ключа из файла .env, либо его получение из системного окружения
 dotenv_path = join(dirname(__file__), "..", '.env')
 load_dotenv(dotenv_path)
 API = os.environ.get("API")
+if not API: 
+    print("No API in environment or .env file given")
+    sys.exit(0)
 
 # Работа программы до тех пор пока пользователь не выберет что-либо
 while open:
@@ -22,30 +25,17 @@ while open:
         open = False
         clear()
     elif answer == "s": # Запуск программы
-        data = weatherMenu() # Спросить город и единицы измерения
-        city = data["city"]
-        units = data["units"]
-        print(f"City: {city}")
-        print(f"Units: {units}")
-        choice = input("Are you sure? (y/n): ") # Спросить уверен ли пользователь в выборе
-        
-        # Повторение вопроса, если человек ответил n
+        choice = ''
         while choice.lower() != "y":
             clear()
-            data = weatherMenu()
+            data = weatherMenu() # Спросить город и единицы измерения
             city = data["city"]
             units = data["units"]
             print(f"City: {city}")
             print(f"Units: {units}")
-            choice = input("Are you sure? (y/n): ")
+            choice = input("Are you sure? (y/n): ") # Спросить уверен ли пользователь в выборе
             
         # Получение погоды
-        if choice.lower() == "y":
-            clear()
-            
-            # Вывод погоды в зависимости от выбранных единиц
-            if data["units"].lower() == "f":
-                getFahrenheit(city, API)
-            else:
-                getCelcius(city, API)
+        clear()
+        getWeather(city, units, API)
         open = False

@@ -1,4 +1,4 @@
-import os
+import os, sys
 import requests
 
 # Очистка экрана
@@ -25,45 +25,32 @@ def weatherMenu():
     city = input("Write the name of the City you looking for: ")
     while len(city) <= 0:
         city = input("Write the name of the City you looking for: ")
-    units = input("Write F to choose Fahrenheit or C to choose Celsius: ")
-    while(len(units) <= 0 or (units.lower() != "f" and units.lower() != "c")):
-        units = input("Write F to choose Fahrenheit or C to choose Celsius: ")
+    units = input("Write F to choose Fahrenheit or C to choose Celsius or K to choose Kelvin: ")
+    while(len(units) <= 0 or (units.lower() != "f" and units.lower() != "c" and units.lower() != "k")):
+        units = input("You entered wrong letter. Write F to choose Fahrenheit or C to choose Celsius or K to choose Kelvin: ")
     return {"city": city.capitalize(), "units": units.upper()}
 
-# Получение погоды в Фаренгейтах от API
-def getFahrenheit(city, API):
-    link = "http://api.weatherstack.com/current"
-    params = {'access_key': API, 'units': 'f', 'query': city}
-    r = requests.get(link, params=params)
-    
-    # Парсинг ответа от API
-    data = r.json()
-    weatherInfo = {
-        "name": data["location"]["name"],
-        "country": data["location"]["country"],
-        "region": data["location"]["region"],
-        "time": data["current"]["observation_time"],
-        "temperature": data["current"]["temperature"],
-        "condition": data["current"]["weather_descriptions"][0]
-    }
-    printInfo(weatherInfo, "F")
-
-# Получение погоды в Цельсиях от API
-def getCelcius(city, API):
+# Получение погоды от API
+def getWeather(city, units, API):
     link = "http://api.weatherstack.com/current"
     params = {'access_key': API, 'query': city}
+    if units=='F': params['units'] = 'f'
     r = requests.get(link, params=params)
     
     # Парсинг ответа от API
-    data = r.json()
-    weatherInfo = {
-        "name": data["location"]["name"],
-        "country": data["location"]["country"],
-        "region": data["location"]["region"],
-        "temperature": data["current"]["temperature"],
-        "condition": data["current"]["weather_descriptions"][0]
-    }
-    printInfo(weatherInfo, "C")
+    try:
+        data = r.json()
+        weatherInfo = {
+            "name": data["location"]["name"],
+            "country": data["location"]["country"],
+            "region": data["location"]["region"],
+            "temperature": data["current"]["temperature"]+ 273.15 if units=='K' else 0,
+            "condition": data["current"]["weather_descriptions"][0]
+        }
+        printInfo(weatherInfo, units.upper())
+    except:
+        print("You entered wrong city: ", city)
+        sys.exit(0)
 
 # Вывод погоды в удобном для понимании виде
 def printInfo(info, units):
