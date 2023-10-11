@@ -16,7 +16,7 @@ program.version("1.0.0").description("Console Application for find the Weather o
 program
     .command('current <city> <units>')
     .alias('c')
-    .description('See the weather of the city, write F to get temperature in Fahrenheit, or C to get in Celcius')
+    .description('See the weather of the city, write F to get temperature in Fahrenheit, or C to get in Celcius, or K to get in Kelvin')
     .action((city, units) => currentWeather(city, units))
 
 // Получение аргументов запуска
