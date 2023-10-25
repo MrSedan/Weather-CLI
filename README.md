@@ -48,5 +48,5 @@ npm i
 Запустить программу с параметрами в виде `node index.js c <Город> <Единица измерения C, F или K>`
 
 ```
-node index.js c Moscow c
+npm run weather Moscow c
 ```
