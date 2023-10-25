@@ -3,7 +3,7 @@ import fetch from "node-fetch"; // Импорт функции веб-запро
 // Функция получения погоды
 export const currentWeather = async (city, units = "m") => {
   // Проверка ввода
-  if (city.length > 0 || (units !== "F" && units !== "C" && units !== "K")) {
+  if (city.length > 0 && !(units !== "f" && units !== "c" && units !== "k")) {
     // Выбор необходимой ссылки в зависимости от выбранной единицы
     const link = `http://api.weatherstack.com/current?access_key=${
       process.env.API
