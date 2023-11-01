@@ -49,14 +49,15 @@ async def get_weather(data: QueryParams = Depends()):
         try:
             async with session.get(API_URL, params=params) as resp:
                 data = await resp.json()
-                if resp.status != 200 or not data['success']:
+                if resp.status != 200 or ('success' in data and not data['success']):
                     raise HTTPException(400, detail='You entered wrong city')
                 return {
                     "temperature": data['current']['temperature'] + (273.15 if temp_type == 'k' else 0), 
                     "country": data['location']['country'], 
                     "name": data['location']['name'], 
                     "region": data['location']['region'], 
-                    "condition": data["current"]["weather_descriptions"][0]
+                    "condition": data["current"]["weather_descriptions"][0],
+                    "time": data['current']['observation_time']
                     }
         except HTTPException as e:
             raise e
