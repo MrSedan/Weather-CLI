@@ -43,21 +43,21 @@ def weatherMenu():
 
 
 def getWeather(city, units, API):
-    link = "http://api.weatherstack.com/current"
-    params = {'access_key': API, 'query': city}
-    if units == 'F':
-        params['units'] = 'f'
-    r = requests.get(link, params=params)
-
+    link = f"http://localhost:5000/get-weather/{units}/{city}"
+    r = requests.get(link)
+    
+    if r.status_code != 200:
+        res = r.json()
+        raise Exception(res['detail'])
     # Парсинг ответа от API
     try:
         data = r.json()
         weatherInfo = {
-            "name": data["location"]["name"],
-            "country": data["location"]["country"],
-            "region": data["location"]["region"],
-            "temperature": data["current"]["temperature"] + 273.15 if units == 'K' else 0,
-            "condition": data["current"]["weather_descriptions"][0]
+            "name": data["name"],
+            "country": data["country"],
+            "region": data["region"],
+            "temperature": data["temperature"],
+            "condition": data["condition"]
         }
         printInfo(weatherInfo, units.upper())
     except:
