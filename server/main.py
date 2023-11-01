@@ -5,13 +5,17 @@ from typing import Annotated
 import aiohttp
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, Depends, FastAPI, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from pydantic.dataclasses import dataclass
 
 
-class WeatherRequest(BaseModel):
-    city: str | int
+@dataclass
+class QueryParams:
+    city: str
+    temp_type: str
+
 
 dotenv_path = join(dirname(__file__), "..", '.env')
 load_dotenv(dotenv_path)
@@ -27,38 +31,37 @@ description = """
 app = FastAPI(description=description)
 
 
-@app.post('/get-weather/{temp_type}')
-async def get_weather(*, data: Annotated[WeatherRequest, Body(
-    openapi_examples={
-        "normal": {
-            "summary": "A normal example",
-            "description": "A **normal** item works correctly.",
-            'value': {
-                "city": "Kirov"
-            }
-        },
-        "invalid": {
-            "summary": "Invalid city",
-            "description": "A **bad** throws 400 error",
-            "value": {
-                "city": 123,
-            }
-        },
-    }
-    )], temp_type: str = "c"):
+@app.get('/get-weather/{temp_type}/{city}')
+async def get_weather(data: QueryParams = Depends()):
     """
-    Метод получения погоды по полученному городу и единице измерения
+    Метод получения погоды по введенному городу и единице измерения
     """
-    if type(data.city) != str:
-        raise HTTPException(status_code=400, detail="Bad city")
+    temp_type = data.temp_type.casefold()
+    city = data.city.capitalize()
+    if not len(city):
+        raise HTTPException(status_code=400, detail="You entered wrong city")
     if temp_type not in ['k', 'f', 'c']:
-        raise HTTPException(status_code=400, detail="Bad temperature type")
+        raise HTTPException(status_code=400, detail="You entered wrong temperature type")
+    params = {'access_key': API_KEY, 'query': city}
+    if temp_type == 'f':
+        params['units'] = 'f'
     async with aiohttp.ClientSession() as session:
-        async with session.get(API_URL, params={'access_key': API_KEY, 'query': data.city}, headers={'Content-Type': 'application/json'}) as resp:
-            if resp.status != 200:
-                raise HTTPException(400, detail='Bad city')
-            data = await resp.json()
-            return {"temperature": data['current']['temperature']}
+        try:
+            async with session.get(API_URL, params=params) as resp:
+                data = await resp.json()
+                if resp.status != 200 or not data['success']:
+                    raise HTTPException(400, detail='You entered wrong city')
+                return {
+                    "temperature": data['current']['temperature'] + (273.15 if temp_type == 'k' else 0), 
+                    "country": data['location']['country'], 
+                    "name": data['location']['name'], 
+                    "region": data['location']['region'], 
+                    "condition": data["current"]["weather_descriptions"][0]
+                    }
+        except HTTPException as e:
+            raise e
+        except:
+            raise HTTPException(500, detail="Weather server is unreachable")
 
 
 @app.get('/swagger')
