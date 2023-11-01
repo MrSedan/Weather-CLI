@@ -5,22 +5,24 @@ export const currentWeather = async (city, units = "m") => {
   // Проверка ввода
   if (city.length > 0 && !(units !== "f" && units !== "c" && units !== "k")) {
     // Выбор необходимой ссылки в зависимости от выбранной единицы
-    const link = `http://api.weatherstack.com/current?access_key=${
-      process.env.API
-    }&${units.toLowerCase() === "f" ? "units=f&" : ""}query=${city}`;
+    const link = `http://localhost:5000/get-weather/${units}/${city}`;
     const response = await fetch(link); // Запрос на API
+    if (response.status != 200) {
+      const data = await response.json()
+      throw new Error(data.detail)
+    }
     let weatherInfo = {};
     // Парсинг ответа от сервера
     try {
       let data = await response.json();
       weatherInfo = {
-        name: data.location.name,
-        country: data.location.country,
-        region: data.location.region,
-        time: data.current.observation_time,
+        name: data.name,
+        country: data.country,
+        region: data.region,
+        time: data.time,
         temperature:
-          data.current.temperature + (units.toUpperCase() === "K" ? 273.15 : 0),
-        condition: data.current.weather_descriptions[0],
+          data.temperature,
+        condition: data.condition,
       };
     } catch {
       throw new Error("You entered wrong city!");
